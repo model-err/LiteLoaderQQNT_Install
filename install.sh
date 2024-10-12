@@ -353,6 +353,56 @@ function aur_install_func() {
         fi
     fi
 }
+            
+
+function flatpak_qq_func() {
+    # 检查 Flatpak 是否安装
+    if command -v flatpak &> /dev/null; then        
+        # 检查是否安装了 Flatpak 版的 QQ
+        if flatpak list | grep -q "com.qq.QQ"; then
+            echo "检测到 Flatpak 版 QQ 已安装"
+            pull_liteloader 
+            
+            LITELOADER_DIR=$HOME/.config/LiteLoaderQQNT
+            LITELOADER_DATA_DIR=$LITELOADER_DIR
+            cp /tmp/LiteLoader $LITELOADER_DIR
+                        
+            # 提示用户输入自定义的 LITELOADERQQNT_PROFILE 值（如果需要自定义）
+            read -p "是否需要自定义 LiteLoaderQQNT 数据目录? (当前目录: $LITELOADER_DATA_DIR) (y/n): " custom_dir
+            if [[ "$custom_dir" == "y" ]]; then
+                read -p "请输入新的 LiteLoaderQQNT 数据目录路径: " user_defined_dir
+                LITELOADER_DATA_DIR="$user_defined_dir"
+            fi
+            
+            FLATPAK_QQ_DIR=$(flatpak info --show-location com.qq.QQ)/files/extra/QQ/resources/app
+            
+            # 检查 LiteLoaderQQNT 数据目录是否存在
+            if [ ! -d "$LITELOADER_DATA_DIR" ]; then
+                echo "LiteLoaderQQNT 数据目录不存在，创建目录：$LITELOADER_DATA_DIR"
+                mkdir -p "$LITELOADER_DATA_DIR"
+            else
+                echo "LiteLoaderQQNT 数据目录：$LITELOADER_DATA_DIR"
+            fi
+            
+            # 授予 Flatpak 访问 LiteLoaderQQNT 数据目录的权限
+            echo "授予 Flatpak 版 QQ 对 $LITELOADER_DATA_DIR 和 $LITELOADER_DIR 的访问权限"
+            flatpak override --filesystem="$LITELOADER_DATA_DIR" com.qq.QQ
+            flatpak override --filesystem="$LITELOADER_DIR" com.qq.QQ
+
+            
+            # 将 LITELOADERQQNT_PROFILE 作为环境变量传递给 Flatpak 版 QQ
+            echo "将 LITELOADERQQNT_PROFILE 环境变量传递给 QQ"
+            flatpak override --env=LITELOADERQQNT_PROFILE="$LITELOADER_DATA_DIR" com.qq.QQ
+            
+            echo "设置完成！LiteLoaderQQNT 数据目录：$LITELOADER_DATA_DIR"
+            
+            echo "require(String.raw\`$LITELOADER_DIR\`)" | sudo tee $FLATPAK_QQ_DIR/app_launcher/ml_install.js > /dev/null
+            
+            sudo sed -i 's|"main":.*|"main": "./app_launcher/ml_install.js",|' $FLATPAK_QQ_DIR/package.json
+            exit 0
+        fi
+    fi
+}
 
 
 # 检查是否为 root 用户
@@ -374,6 +424,7 @@ unamestr=$(uname)
 if [[ "$unamestr" == "Linux" ]]; then
     platform="linux"
     aur_install_func
+    flatpak_qq_func
 elif [[ "$unamestr" == "Darwin" ]]; then
     platform="macos"
 fi
@@ -414,3 +465,4 @@ echo "脚本将在 3 秒后退出..."
 sleep 3
 exit 0
     
+                
