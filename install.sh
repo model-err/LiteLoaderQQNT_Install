@@ -348,7 +348,7 @@ function flatpak_qq_func() {
             
             LITELOADER_DIR=$HOME/.config/LiteLoaderQQNT
             LITELOADER_DATA_DIR=$LITELOADER_DIR
-            cp /tmp/LiteLoader $LITELOADER_DIR
+            mv -f /tmp/LiteLoader $LITELOADER_DIR
                         
             # 提示用户输入自定义的 LITELOADERQQNT_PROFILE 值（如果需要自定义）
             read -p "是否需要自定义 LiteLoaderQQNT 数据目录? (当前目录: $LITELOADER_DATA_DIR) (y/n): " custom_dir
@@ -366,11 +366,11 @@ function flatpak_qq_func() {
             
             # 授予 Flatpak 访问 LiteLoaderQQNT 数据目录的权限
             echo "授予 Flatpak 版 QQ 对数据目录 $LITELOADER_DATA_DIR 和本体目录 $LITELOADER_DIR 的访问权限"
-            flatpak override --filesystem="$LITELOADER_DATA_DIR" com.qq.QQ
-            flatpak override --filesystem="$LITELOADER_DIR" com.qq.QQ
+            sudo flatpak override --filesystem="$LITELOADER_DATA_DIR" com.qq.QQ
+            sudo flatpak override --filesystem="$LITELOADER_DIR" com.qq.QQ
 
             # 将 LITELOADERQQNT_PROFILE 作为环境变量传递给 Flatpak 版 QQ
-            flatpak override --env=LITELOADERQQNT_PROFILE="$LITELOADER_DATA_DIR" com.qq.QQ
+            sudo flatpak override --env=LITELOADERQQNT_PROFILE="$LITELOADER_DATA_DIR" com.qq.QQ
             
             echo "设置完成！LiteLoaderQQNT 数据目录：$LITELOADER_DATA_DIR"
             
