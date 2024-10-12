@@ -21,15 +21,9 @@ function download_and_extract() {
     archive_name=$(basename "$url")
     # 获取扩展名并处理多部分扩展名
     case "$archive_name" in
-        *.tar.gz)
-            archive_extension="tar.gz"
-        ;;
-        *.zip)
-            archive_extension="zip"
-        ;;
-        *)
-            archive_extension="${archive_name##*.}"
-        ;;
+        *.tar.gz) archive_extension="tar.gz" ;;
+        *.zip) archive_extension="zip" ;;
+        *) archive_extension="${archive_name##*.}";;
     esac
 
     if command -v wget > /dev/null; then
@@ -44,10 +38,8 @@ function download_and_extract() {
     mkdir -p "$output_dir"
 
     case "$archive_extension" in
-        tar.gz)
-            tar -zxf "$archive_name" --strip-components=1 -C "$output_dir"
-            ;;
-        zip)
+        tar.gz) tar -zxf "$archive_name" --strip-components=1 -C "$output_dir" ;;
+        zip) 
             if command -v unzip > /dev/null; then
                 unzip -q "$archive_name" -d "$output_dir"
             else
@@ -55,10 +47,7 @@ function download_and_extract() {
                 exit 1
             fi
             ;;
-        *)
-            echo "不支持的文件格式: $archive_extension"
-            exit 1
-            ;;
+        *) echo "不支持的文件格式: $archive_extension"; exit 1 ;;
     esac
 
     rm "$archive_name"
@@ -93,15 +82,9 @@ function pull_liteloader() {
             LATEST_TAG=$(perl -nle 'print $1 if /"name"\s*:\s*"([^"]+)/' <<< "$(curl -s $TAG_URL)" | head -n 1)
             repo_url="https://gitlink.org.cn/shenmo7192/LiteLoaderQQNT.git"
             archive_url="https://www.gitlink.org.cn/api/shenmo7192/liteloaderqqnt/archive/$LATEST_TAG.tar.gz"
-            if [ -z "$LATEST_TAG" ]; then
-                echo "获取最新版本失败，请截图：$LATEST_TAG"
-                exit 1
-            fi
+            [ -z "$LATEST_TAG" ] && { echo "获取最新版本失败，请截图：$LATEST_TAG"; exit 1; }
             ;;
-        *)
-            echo "出现错误，请截图"
-            exit 1
-            ;;
+        *) echo "出现错误，请截图"; exit 1 ;;
     esac
 
     download_and_extract $archive_url LiteLoader || { echo "下载并解压失败，退出脚本"; exit 1; }
@@ -378,26 +361,20 @@ function flatpak_qq_func() {
             
             # 检查 LiteLoaderQQNT 数据目录是否存在
             if [ ! -d "$LITELOADER_DATA_DIR" ]; then
-                echo "LiteLoaderQQNT 数据目录不存在，创建目录：$LITELOADER_DATA_DIR"
                 mkdir -p "$LITELOADER_DATA_DIR"
-            else
-                echo "LiteLoaderQQNT 数据目录：$LITELOADER_DATA_DIR"
             fi
             
             # 授予 Flatpak 访问 LiteLoaderQQNT 数据目录的权限
-            echo "授予 Flatpak 版 QQ 对 $LITELOADER_DATA_DIR 和 $LITELOADER_DIR 的访问权限"
+            echo "授予 Flatpak 版 QQ 对数据目录 $LITELOADER_DATA_DIR 和本体目录 $LITELOADER_DIR 的访问权限"
             flatpak override --filesystem="$LITELOADER_DATA_DIR" com.qq.QQ
             flatpak override --filesystem="$LITELOADER_DIR" com.qq.QQ
 
-            
             # 将 LITELOADERQQNT_PROFILE 作为环境变量传递给 Flatpak 版 QQ
-            echo "将 LITELOADERQQNT_PROFILE 环境变量传递给 QQ"
             flatpak override --env=LITELOADERQQNT_PROFILE="$LITELOADER_DATA_DIR" com.qq.QQ
             
             echo "设置完成！LiteLoaderQQNT 数据目录：$LITELOADER_DATA_DIR"
             
             echo "require(String.raw\`$LITELOADER_DIR\`)" | sudo tee $FLATPAK_QQ_DIR/app_launcher/ml_install.js > /dev/null
-            
             sudo sed -i 's|"main":.*|"main": "./app_launcher/ml_install.js",|' $FLATPAK_QQ_DIR/package.json
             exit 0
         fi
