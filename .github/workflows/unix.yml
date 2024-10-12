@@ -113,7 +113,13 @@ jobs:
     - name: Check LiteLoader
       run: |
         sudo flatpak override --filesystem=home com.qq.QQ
-        xvfb-run flatpak run com.qq.QQ --logging-enable > output.log
+        # 启动应用并获取进程 ID
+        xvfb-run flatpak run com.qq.QQ --logging-enable | tee output.log &
+        APP_PID=$!
+        sleep 3
+        kill -9 $APP_PID
+        
+        # 检查日志输出
         if grep -q "[LiteLoader]" output.log; then
           echo "Flatpak 版 QQ LiteLoader 测试成功"
         else
