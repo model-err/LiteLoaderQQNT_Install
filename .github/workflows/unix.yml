@@ -102,7 +102,7 @@ jobs:
 
     - name: Install Flatpak QQ
       run: |
-        flatpak install -y flathub com.qq.QQ
+        sudo flatpak install -y flathub com.qq.QQ
 
     - name: Run install.sh
       run: |
