@@ -96,6 +96,7 @@ jobs:
       
     - name: Install Flatpak
       run: |
+        sudo apt-get install xvfb # 虚拟显示
         sudo apt-get update
         sudo apt-get install -y flatpak
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -111,7 +112,8 @@ jobs:
 
     - name: Check LiteLoader
       run: |
-        flatpak run com.qq.QQ --logging-enable > output.log
+        sudo flatpak override --filesystem=home com.qq.QQ
+        xvfb-run flatpak run com.qq.QQ --logging-enable > output.log
         if grep -q "[LiteLoader]" output.log; then
           echo "Flatpak 版 QQ LiteLoader 测试成功"
         else

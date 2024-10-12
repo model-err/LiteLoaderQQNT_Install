@@ -61,7 +61,6 @@ function elevate_permissions() {
 
 # 拉取 LiteLoader
 function pull_liteloader() {
-    echo "正在拉取最新版本的仓库..."
     cd /tmp || { echo "无法进入 /tmp 目录"; exit 1; }
     rm -rf LiteLoader
 
